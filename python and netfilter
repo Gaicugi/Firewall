@@ -1,0 +1,17 @@
+from netfilterqueue import NetfilterQueue
+from scapy.all import IP, TCP
+
+BLOCKLIST = ["203.0.113.5", "198.51.100.9"]
+
+def process_packet(packet):
+    pkt = IP(packet.get_payload())
+    if pkt.src in BLOCKLIST:
+        packet.drop()
+        print(f"Dropped packet from {pkt.src}")
+    else:
+        packet.accept()
+
+# Requires: iptables -A INPUT -j NFQUEUE --queue-num 0
+nfqueue = NetfilterQueue()
+nfqueue.bind(0, process_packet)
+nfqueue.run()
